@@ -1,0 +1,17 @@
+﻿@using AdvantShop.Core.UrlRewriter
+@using AdvantShop.Module.CaptureForms.Service
+
+@model string
+
+@{ 
+    var url = UrlService.GetUrl();
+    var scripts = new List<string>
+    {
+        url + "modules/" + CaptureFormsSettings.ModuleID + "/content/scripts/captureFormsList/captureFormsList.js",
+        url + "modules/" + CaptureFormsSettings.ModuleID + "/content/scripts/captureFormsList/modal/ModalAddEditFormCtrl.js"
+    };
+}
+
+<div data-oc-lazy-load="[@String.Join(",", scripts.Select(x => "'" + x + "?" + CaptureFormsSettings.Version + "'" ))]">
+    <capture-forms-list></capture-forms-list>
+</div>

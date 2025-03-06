@@ -1,0 +1,60 @@
+﻿<form novalidate name="captureFormsAddEditFormFieldForm">
+    <div class="modal-header">
+        <ui-modal-cross></ui-modal-cross>
+        <h2 class="modal-header-title">{{ctrl.mode == "add" ? "Новое поле формы" : "Редактирование поля формы"}}</h2>
+    </div>
+    <div class="modal-body" ng-init="ctrl.captureFormsAddEditFormFieldForm = captureFormsAddEditFormFieldForm">
+        <div class="form-group row">
+            <label class="col-xs-4 control-label">
+                <span class="text">
+                    Название поля
+                </span>
+            </label>
+            <div class="col-xs-8">
+                <input data-e2e="FieldName" type="text" class="form-control" ng-model="ctrl.FieldName" required validation-input-text="Название поля" autofocus />
+            </div>
+        </div>
+        <div class="form-group row">
+            <label class="col-xs-4 control-label">
+                <span class="text">
+                    Тип поля
+                </span>
+            </label>
+            <div class="col-xs-8">
+                <select ng-options="FieldType as FieldType.Value for FieldType in ctrl.FieldTypes track by FieldType.Id"
+                        ng-model="ctrl.FieldType"
+                        class="form-control"></select>
+            </div>
+        </div>
+        <div class="form-group row">
+            <label class="col-xs-4 control-label">
+                <span class="text">
+                    Сортировка
+                </span>
+            </label>
+            <div class="col-xs-8">
+                <input data-e2e="FieldSortOrder" type="text" class="form-control" ng-model="ctrl.FieldSortOrder" required validation-input-text="Сортировка" />
+            </div>
+        </div>
+        <div class="form-group row">
+            <label class="col-xs-4 control-label">
+                <span>
+                    Обязательное поле
+                </span>
+            </label>
+            <div class="col-xs-8">
+                <label class="adv-checkbox-label control-checkbox">
+                    <input type="checkbox" class="adv-checkbox-input" ng-model="ctrl.FieldRequired" />
+                    <span class="adv-checkbox-emul"></span>
+                </label>
+            </div>
+        </div>
+    </div>
+    <div class="modal-footer">
+        <button class="btn btn-save btn-primary" type="button" data-e2e="FormButtonSave"
+                data-button-validation-success="ctrl.save()" data-button-validation ladda="ctrl.btnSleep"
+                disabled ng-disabled="ctrl.mode == 'edit' && (!ctrl.formInited || !captureFormsAddEditFormFieldForm.modified)"
+                ng-bind="ctrl.mode == 'add' ? 'Добавить' : 'Сохранить'"></button>
+        <button class="btn btn-default btn-cancel" type="button" ng-click="ctrl.close()">Отмена</button>
+    </div>
+</form>

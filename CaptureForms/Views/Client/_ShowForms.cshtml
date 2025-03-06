@@ -1,0 +1,73 @@
+﻿@model List<AdvantShop.Module.CaptureForms.ViewModel.FormModelView>
+@using AdvantShop.Module.CaptureForms.Models
+
+@foreach (var Form in Model)
+    {
+        bool cond = Form.Placement == "beforeproducts" || Form.Placement == "beforedescription" || Form.Placement == "beforetabs" || Form.Placement == "aftertabs" || ((Form.EntityType == "new" || Form.EntityType == "brand") && Form.Placement == "startofpage") || Form.Placement == "beforecarousel";
+        //string marginBottom = ((Form.Placement == "beforecarousel" || Form.Placement == "beforedescription") && Form.Padding < 10 && !Form.IsMobile ? "10" : Form.Padding + "");
+        string marginBottom = (Form.Padding < 10 && !Form.IsMobile ? "10" : Form.Padding + "");
+        int countFields = Form.Fields.Count();
+        <div class="capture-form-module-form" data-capture-form-entity-type="@Form.EntityType" data-capture-form-placement="@Form.Placement" data-capture-form-is-mobile="@Form.IsMobile" style="@(cond ? ("margin-bottom: " + marginBottom + "px;" + (Form.Placement == "beforetabs" ? "margin-top: 10px;" : "")) : "margin: " + Form.Padding + "px " + (-1) * Form.Margin + "px " + Form.Padding + "px " + (-1) * Form.Margin + "px"); background-color: #@Form.BackColor; padding: @((Form.Padding < 10 ? 10 : Form.Padding) + "px"); border-radius: 5px; border: 1px solid #e2e3e4; display:none;">
+        <form name="captureFormsAddLeadForm" class="capture-form-module-form-form">
+            <div class="btn-center">
+                <h2>@Form.HeaderName</h2>
+            </div>
+            <div class="row middle-xs lp-form__body center-xs lp-form__body--horizontal">
+                @foreach (var Field in Form.Fields)
+                {
+                    if (!Form.IsMobile)
+                    {
+                        @Html.Raw(Field.FieldHtml)
+                    }
+                    else
+                    {
+                        @Html.Raw(Field.FieldHtmlMobile)
+                    }
+                }
+                @if (!Form.IsMobile && countFields > 0 && countFields % 2 == 1 && Form.Fields[countFields - 1].FieldTypeId != FieldType.TextArea)
+                {
+                    @Html.Raw("<div class='col-xs-5 lp-form__field'></div>")
+                }
+                @if (Form.Captcha)
+                {
+                    <div class='@(Form.EnabledAgreement && !Form.TextAgreement.IsNullOrEmpty() ? "col-xs-10" : (!Form.IsMobile ? "col-xs-6" : "col-xs-7")) lp-form__field'>
+                        <iframe id="iframe-capture-forms" class="iframe-capture-forms" src='@Url.Action("Captcha", "CaptureFormsClient")' frameborder="0" width="250" height="63"></iframe>
+                        <div class="middle-xs" style="margin-top: -12px;">
+                            @if (!Form.IsMobile)
+                            {
+                                <input id="CaptchaCode" class="lp-input required" required type="text" style="width: 250px;" />
+                            }
+                            else
+                            {
+                                <input id="CaptchaCode" class="lp-input required col-xs-12" required type="text" />
+                            }
+                        </div>
+                        <div style="position:relative;">
+                            <span id="captchaError" style="position: absolute; display: none;">Введите снова</span>
+                        </div>
+                    </div>
+                }
+                @if (Form.EnabledAgreement && !Form.TextAgreement.IsNullOrEmpty())
+                {
+                    <div class='@(!Form.IsMobile ? "col-xs-6" : "col-xs-10") lp-form__field'>
+                        <div class="middle-xs" style="margin-top: -12px;">
+                            <label>
+                                <input type="checkbox" class="custom-input-native" id="EnabledAgreement" required />
+                                <span class="custom-input-checkbox"></span>
+                                <span>@Html.Raw(Form.TextAgreement)</span>
+                            </label>
+                        </div>
+                    </div>
+                }
+                <div class='@(((Form.EnabledAgreement && !Form.TextAgreement.IsNullOrEmpty()) || Form.Captcha) && !Form.IsMobile ? "col-xs-4" : "col-xs-10") lp-form__field btn-right'>
+                    <input type="submit" class="btn btn-big btn-submit" onclick="addLead(this)" lead-groupid="@Form.LeadGroupId" value="@Form.ButtonName" />
+                </div>
+            </div>
+        </form>
+        <div class="capture-form-module-form-success" style="display: none;">
+            <h2>
+                @Html.Raw(Form.TextAfterSend)
+            </h2>
+        </div>
+    </div>
+}

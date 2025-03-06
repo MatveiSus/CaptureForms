@@ -1,0 +1,59 @@
+﻿@using BotDetect
+@model AdvantShop.Module.CaptureForms.ViewModel.CaptchaViewModel
+@{
+    Layout = null;
+    var captchaSource = new MvcCaptcha(string.IsNullOrEmpty(Model.CaptchaId) ? "CaptchaSource" : Model.CaptchaId)
+    {
+        CodeStyle = CodeStyle.Alphanumeric,
+        Locale = "en-US",
+        CodeLength = SettingsMain.CaptchaLength
+    };
+
+    var hint = "";
+
+    switch (SettingsMain.CaptchaMode)
+    {
+        case CaptchaMode.Numeric:
+            captchaSource.CodeStyle = CodeStyle.Numeric;
+            break;
+        case CaptchaMode.AlphaNumericRu:
+            captchaSource.Locale = "ru";
+            hint = "* буквы на русском языке";
+            break;
+    }
+}
+<script>
+    var header = document.getElementById('header');
+    var footer = document.getElementById('footer');
+    if (header != undefined) {
+        header.style.display = 'none';
+    }
+    if (footer != undefined) {
+        footer.style.display = 'none';
+    }
+    setInterval(function () {
+        if (header != undefined) {
+            header.style.display = 'none';
+        }
+        if (footer != undefined) {
+            footer.style.display = 'none';
+        }
+    }, 200);
+    document.addEventListener('DOMContentLoaded', function () {
+        header = document.getElementById('header');
+        footer = document.getElementById('footer');
+        if (header != undefined) {
+            header.style.display = 'none';
+        }
+        if (footer != undefined) {
+            footer.style.display = 'none';
+        }
+    });
+</script>
+@Html.Captcha(captchaSource)
+
+@*@if (hint != "")
+{
+    <div class="captcha-hint">@hint</div>
+}*@
+<link href="@BotDetect.Web.CaptchaUrls.Absolute.LayoutStyleSheetUrl" rel="stylesheet" type="text/css" />

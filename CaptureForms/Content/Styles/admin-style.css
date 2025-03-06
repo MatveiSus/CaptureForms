@@ -1,0 +1,30 @@
+﻿
+.capture-form-Fields-icon {
+    background-image: url(../images/Fields.png);
+    background-size: contain;
+    background-repeat: no-repeat;
+    width: 20px;
+    height: 20px;
+    padding-left: 30px;
+    margin-left: 10px;
+}
+
+
+.capture-form-list-icon {
+    background-image: url(../images/list.png);
+    background-size: contain;
+    background-repeat: no-repeat;
+    width: 20px;
+    height: 20px;
+    padding-left: 30px;
+    margin-left: 10px;
+}
+
+.capture-form-link {
+    color: #676a6c;
+    text-decoration-color: #676a6c;
+}
+
+.capture-form-padding {
+    padding-left: 25px;
+}
