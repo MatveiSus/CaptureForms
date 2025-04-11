@@ -374,10 +374,41 @@
     };
 
     window.JCCatalogItem.prototype = {
-        init: function () {
-            var i = 0,
-                treeItems = null;
+// ЗАМЕНА init// ЗАМЕНА init// ЗАМЕНА init// ЗАМЕНА init// ЗАМЕНА init// ЗАМЕНА init// ЗАМЕНА init// ЗАМЕНА init		
+        init: function (arParams) {
+    console.log('Full init params:', arParams);
+    
+    this.product = arParams.PRODUCT || {};
+    this.price = arParams.PRICE || 0;
+    
+    // Проверяем все возможные источники цены
+    if (arParams.ITEM_PRICES && arParams.ITEM_PRICES.length > 0) {
+        this.product.ITEM_PRICES = arParams.ITEM_PRICES;
+        this.product.ITEM_PRICE_SELECTED = arParams.ITEM_PRICE_SELECTED || 0;
+    }
+    
+    if (arParams.PRICES) {
+        this.product.PRICES = arParams.PRICES;
+    }
+    
+    if (arParams.MIN_PRICE) {
+        this.product.MIN_PRICE = arParams.MIN_PRICE;
+    }
+    
+    // Инициализация статуса покупки
+    if (this.product.maxQuantity > 0) {
+        this.canBuy = true;
+    }
 
+    var i = 0,
+        treeItems = null;
+
+    this.obProduct = BX(this.visual.ID);
+    if (!this.obProduct) {
+        this.errorCode = -1;
+    }
+
+// ЗАМЕНА init// ЗАМЕНА init// ЗАМЕНА init// ЗАМЕНА init// ЗАМЕНА init// ЗАМЕНА init// ЗАМЕНА init// ЗАМЕНА init
             this.obProduct = BX(this.visual.ID);
             if (!this.obProduct) {
                 this.errorCode = -1;
@@ -1892,93 +1923,110 @@
             }
         },
 
-        setPrice: function () {
-            var obData, price;
-            var multiplePrices = false;
+//ФУНКЦИЯ ФОРМИРОВАНИЯ ЦЕНЫ //ФУНКЦИЯ ФОРМИРОВАНИЯ ЦЕНЫ //ФУНКЦИЯ ФОРМИРОВАНИЯ ЦЕНЫ //ФУНКЦИЯ ФОРМИРОВАНИЯ ЦЕНЫ //ФУНКЦИЯ ФОРМИРОВАНИЯ ЦЕНЫ 
 
-            switch (this.productType) {
-                case 3: //sku
-                    var currentOffer = this.offers[this.offerNum];
+ setPrice: function() {
+    console.log('=== Start setPrice() ===');
+    
+    // Расширенный вывод всех возможных источников цены
+    console.log('Extended price data:', {
+        product: this.product,
+        price: this.price,
+        PRICES: this.product ? this.product.PRICES : undefined,
+        PRICE: this.product ? this.product.PRICE : undefined,
+        ITEM_PRICES: this.product ? this.product.ITEM_PRICES : undefined,
+        BASE_PRICE: this.product ? this.product.BASE_PRICE : undefined,
+        MIN_PRICE: this.product ? this.product.MIN_PRICE : undefined
+    });
 
-                    if (currentOffer.ITEM_ALL_PRICES) {
-                        currentOffer.ITEM_ALL_PRICES.forEach((priceBlock) => {
-                            if (Object.keys(priceBlock.PRICES).length > 1) {
-                                multiplePrices = true;
-                            }
-                        });
-                    }
+    // Проверяем наличие товара и устанавливаем возможность покупки
+    if (this.product && this.product.maxQuantity > 0) {
+        this.canBuy = true;
+    }
 
-                    break;
-                default:
-                    if (this.allCurrentPrices) {
-                        this.allCurrentPrices.forEach((priceBlock) => {
-                            if (Object.keys(priceBlock.PRICES).length > 1) {
-                                multiplePrices = true;
-                            }
-                        });
-                    }
-                    break;
-            }
+    // Получаем цену из всех возможных источников
+    var productPrice = 0;
+    if (this.product) {
+        if (this.product.ITEM_PRICES && this.product.ITEM_PRICES.length > 0) {
+            productPrice = this.product.ITEM_PRICES[this.product.ITEM_PRICE_SELECTED || 0].RATIO_PRICE;
+        } else if (this.product.MIN_PRICE) {
+            productPrice = this.product.MIN_PRICE.VALUE;
+        } else if (this.product.PRICE) {
+            productPrice = typeof this.product.PRICE === 'object' ? this.product.PRICE.VALUE : this.product.PRICE;
+        } else if (this.product.BASE_PRICE) {
+            productPrice = this.product.BASE_PRICE;
+        } else if (this.product.PRICES && Object.keys(this.product.PRICES).length > 0) {
+            // Берем первую доступную цену из массива PRICES
+            var firstPrice = Object.values(this.product.PRICES)[0];
+            productPrice = typeof firstPrice === 'object' ? firstPrice.VALUE : firstPrice;
+        } else if (this.price) {
+            productPrice = this.price;
+        }
+    }
 
-            if (this.obQuantity) {
-                this.checkPriceRange(this.obQuantity.value);
-            }
+    console.log('Found product price:', productPrice);
 
-            if (this.productType === 3 && this.fillItemAllPrices) {
-                // this.setAllPrices();
-            }
-
-            this.checkQuantityControls();
-
-            price = this.currentPrices[this.currentPriceSelected];
-
-            if (this.obPrice.length) {
-	      if (price.RATIO_PRICE != 0){
+    if (this.obPrice && this.obPrice.length) {
+        if (this.canBuy) {
+            if (productPrice && parseFloat(productPrice) > 0) {
+                // Если есть цена и она больше нуля
                 this.obPrice.forEach(priceElement => {
-                    if (price) {
-                        BX.adjust(priceElement, {
-                            html: (multiplePrices
-                                    ? BX.message('PRICE_FROM') + ' '
-                                    : '')
-                                + price.PRINT_RATIO_PRICE
-                        });
-                    } else {
-                        BX.adjust(priceElement, {html: ''});
-                    }
-                });
-	      }
-
-                if (this.showOldPrice && this.obPriceOld.length) {
-                    this.obPriceOld.forEach(oldPriceElement => {
-                        if (price && price.RATIO_PRICE !== price.RATIO_BASE_PRICE) {
-                            BX.adjust(oldPriceElement, {
-                                style: {display: ''},
-                                html: price.PRINT_RATIO_BASE_PRICE
-                            });
-                        } else {
-                            BX.adjust(oldPriceElement, {
-                                style: {display: 'none'},
-                                html: ''
-                            });
-                        }
+                    BX.adjust(priceElement, {
+                        html: BX.Currency.currencyFormat(productPrice, 'RUB', true)
                     });
-                }
+                });
 
-                if (this.showPercent) {
-                    if (price && parseInt(price.PERCENT) > 0) {
-                        obData = {style: {display: ''}, html: -price.PERCENT + '%'};
-                    } else {
-                        obData = {style: {display: 'none'}, html: ''};
-                    }
-
-                    if (this.obDscPerc.length) {
-                        this.obDscPerc.forEach(discountPercentElement => {
-                            BX.adjust(discountPercentElement, obData);
-                        });
-                    }
-                }
+                console.log('Displaying actual price:', BX.Currency.currencyFormat(productPrice, 'RUB', true));
+            } else {
+                // Если цена равна нулю или не установлена
+                this.obPrice.forEach(priceElement => {
+                    BX.adjust(priceElement, {html: 'Цена по запросу'});
+                });
+                console.log('Displaying: Цена по запросу (price is zero or undefined)');
             }
-        },
+
+            // Показываем кнопку покупки
+            if (this.obBuyBtn) {
+                this.obBuyBtn.style.display = '';
+                this.obBuyBtn.removeAttribute('disabled');
+            }
+
+            // Скрываем сообщение о недоступности
+            if (this.obNotAvail && this.obNotAvail.length) {
+                this.obNotAvail.forEach((element) => {
+                    element.style.display = 'none';
+                });
+            }
+        } else {
+            // Если товар нельзя купить
+            this.obPrice.forEach(priceElement => {
+                BX.adjust(priceElement, {html: 'Нет в наличии'});
+            });
+
+            if (this.obBuyBtn) {
+                this.obBuyBtn.style.display = 'none';
+            }
+
+            if (this.obNotAvail && this.obNotAvail.length) {
+                this.obNotAvail.forEach((element) => {
+                    element.style.display = '';
+                });
+            }
+        }
+    }
+
+    console.log('Final state:', {
+        canBuy: this.canBuy,
+        quantity: this.product ? this.product.maxQuantity : 0,
+        actualPrice: productPrice,
+        priceDisplayed: productPrice > 0 ? BX.Currency.currencyFormat(productPrice, 'RUB', true) : 'Цена по запросу',
+        buyButtonVisible: this.canBuy
+    });
+    console.log('=== End setPrice() ===');
+},
+
+
+//ФУНКЦИЯ ФОРМИРОВАНИЯ ЦЕНЫ ВЫШЕ//ФУНКЦИЯ ФОРМИРОВАНИЯ ЦЕНЫ ВЫШЕ//ФУНКЦИЯ ФОРМИРОВАНИЯ ЦЕНЫ ВЫШЕ//ФУНКЦИЯ ФОРМИРОВАНИЯ ЦЕНЫ ВЫШЕ
 
         setAllPrices: function () {
             const currentOffer = this.offers[this.offerNum];
